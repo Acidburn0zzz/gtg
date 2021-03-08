@@ -121,7 +121,7 @@ class TestSavedSearch(TestCase):
         child_3 = store.new('Child search 3', '@another_tag', child_2.id)
 
         self.assertEqual(len(store.lookup), 5)
-        store.remove_child(child_2.id, child_3.id)
+        store.remove(child_3.id)
 
         self.assertEqual(len(store.lookup), 4)
         self.assertEqual(len(child_2.children), 0)
@@ -216,3 +216,49 @@ class TestSavedSearch(TestCase):
         xml_root = store.to_xml()
 
         self.assertEqual(len(xml_root), 2)
+
+
+    def test_parent(self):
+
+        store = SavedSearchStore()
+        search1 = store.new('Some @tag', 'Looking for some tag')
+        search2 = store.new('Some @other @tag', 'Looking for more')
+
+        self.assertEqual(len(store.lookup), 2)
+        self.assertEqual(len(store.data), 2)
+
+        store.parent(search1.id, search2.id)
+
+        self.assertEqual(len(store.data), 1)
+        self.assertEqual(len(search2.children), 1)
+        self.assertEqual(len(store.lookup), 2)
+
+        search3 = store.new('Some @other @tag', 'Looking for more')
+        store.parent(search3.id, search1.id)
+
+        self.assertEqual(len(store.data), 1)
+        self.assertEqual(len(search1.children), 1)
+        self.assertEqual(len(search2.children), 1)
+        self.assertEqual(len(store.lookup), 3)
+
+
+    def test_unparent(self):
+
+        store = SavedSearchStore()
+        search1 = store.new('Some @tag', 'Looking for some tag')
+        search2 = store.new('Some @other @tag', 'Looking for more')
+
+        self.assertEqual(len(store.lookup), 2)
+        self.assertEqual(len(store.data), 2)
+
+        store.parent(search1.id, search2.id)
+
+        self.assertEqual(len(store.data), 1)
+        self.assertEqual(len(search2.children), 1)
+        self.assertEqual(len(store.lookup), 2)
+
+        store.unparent(search1.id, search2.id)
+
+        self.assertEqual(len(store.data), 2)
+        self.assertEqual(len(search2.children), 0)
+        self.assertEqual(len(store.lookup), 2)

@@ -83,22 +83,41 @@ class BaseStore(ABC):
     def remove(self, item_id: uuid4) -> None:
         """Remove an existing search from the store."""
 
-        try:
-            for item in self.lookup.values():
-                if item.id == item_id:
-                    for child in item.children:
-                        item.children.remove(child)
-                        del self.lookup[child.id]
+        def recursive_delete(parent: Any) -> None:
+            """Find and Delete an item among children of items."""
 
-                    self.data.remove(item)
+            for child in parent.children:
+                if child.id == item_id:
+                    parent.children.remove(child)
+                    del self.lookup[child.id]
 
-            del self.lookup[item_id]
+                    for inner_child in child.children:
+                        del self.lookup[inner_child.id]
 
-            log.debug('Removed item with id %s', item_id)
+                    return
 
-        except KeyError:
-            log.warn('Failed to remove item %s, id not found!', item_id)
-            raise
+                elif child.children:
+                    recursive_delete(child)
+
+
+        if item_id not in self.lookup.keys():
+            raise KeyError
+
+        # Try to delete from data first
+        for item in self.data:
+            if item.id == item_id:
+                self.data.remove(item)
+                del self.lookup[item.id]
+
+                for child in item.children:
+                    del self.lookup[child.id]
+
+                return
+
+        # Couldn't find it in data, so let's look inside children lists
+        for item in self.data:
+            if item.children:
+                recursive_delete(item)
 
 
     # --------------------------------------------------------------------------
