@@ -45,7 +45,7 @@ class Tag2:
     def __str__(self) -> str:
         """String representation."""
 
-        return (f'Tag "{self.name}" with id "{self.tid}"')
+        return (f'Tag "{self.name}" with id "{self.id}"')
 
 
 class TagStore(BaseStore):
@@ -144,11 +144,15 @@ class TagStore(BaseStore):
             element = SubElement(root, self.XML_TAG)
             element.set('id', str(tag.id))
             element.set('name', tag.name)
-            element.set('color', tag.color)
-            element.set('icon', tag.icon)
+
+            if tag.color:
+                element.set('color', tag.color)
+
+            if tag.icon:
+                element.set('icon', tag.icon)
 
             try:
-                element.set('parent', parent_map[tag.id])
+                element.set('parent', str(parent_map[tag.id]))
             except KeyError:
                 pass
 

@@ -40,19 +40,73 @@ class TestTagStore(TestCase):
 
 
     def test_xml_load_simple(self):
-        ...
+        store = TagStore()
+        xml_doc = XML('''
+        <taglist>
+            <tag id="e2503866-3ebb-4ede-9e72-ff0afa1c2e74" name="to_pay"/>
+            <tag id="df4db599-63f8-4fc8-9f3d-5454dcadfd78" name="money" icon="😗️"/>
+        </taglist>
+            ''')
+
+        store.from_xml(xml_doc)
+        self.assertEqual(store.count(), 2)
+
 
     def test_xml_load_tree(self):
-        ...
+        store = TagStore()
+        xml_doc = XML('''
+        <taglist>
+            <tag id="e2503866-3ebb-4ede-9e72-ff0afa1c2e74" name="to_pay"/>
+            <tag id="df4db599-63f8-4fc8-9f3d-5454dcadfd78" name="money" icon="😗️"/>
+            <tag id="ef4db599-73f8-4fc8-9f3d-5454dcadfd78" name="errands" color="767BDC" parent="e2503866-3ebb-4ede-9e72-ff0afa1c2e74"/>
+        </taglist>
+            ''')
+
+        store.from_xml(xml_doc)
+        self.assertEqual(store.count(), 3)
+        self.assertEqual(store.count(root_only=True), 2)
+
 
     def test_xml_load_bad(self):
-        ...
+        store = TagStore()
+        xml_doc = XML('''
+        <taglist>
+            <tag id="e2503866-3ebb-4ede-9e72-ff0afa1c2e74" name="to_pay"/>
+            <tag id="df4db599-63f8-4fc8-9f3d-5454dcadfd78" name="money" icon="😗️" parent="lol"/>
+        </taglist>
+            ''')
+
+        with self.assertRaises(KeyError):
+            store.from_xml(xml_doc)
+
 
     def test_xml_write_simple(self):
-        ...
+        store = TagStore()
+        tag = store.new('My_tag')
+        tag2 = store.new('My_tag2')
+        tag3 = store.new('My_tag3', tag2.id)
+
+        tag2.color = '555557575353'
+        tag3.icon = '😅️'
+
+        xml_root = store.to_xml()
+
+        self.assertEqual(len(xml_root), 3)
+
 
     def test_xml_write_tree(self):
-        ...
+        store = TagStore()
+        tag = store.new('My_tag')
+        tag2 = store.new('My_tag2')
+        tag3 = store.new('My_tag3', tag2.id)
+
+        tag2.color = '555557575353'
+        tag3.icon = '😅️'
+
+        xml_root = store.to_xml()
+
+        self.assertEqual(len(xml_root), 3)
+
 
     def test_random_color(self):
         tag_store = TagStore()
