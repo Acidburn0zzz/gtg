@@ -116,7 +116,7 @@ class SavedSearchStore(BaseStore):
             element.set('query', search.query)
 
             try:
-                element.set('parent', parent_map[search.id])
+                element.set('parent', str(parent_map[search.id]))
             except KeyError:
                 pass
 
