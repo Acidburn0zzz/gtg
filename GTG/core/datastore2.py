@@ -31,7 +31,10 @@ log = logging.getLogger(__name__)
 class Datastore2:
 
     def __init__(self) -> None:
-        ...
+        self.tasks = TaskStore()
+        self.tags = TagStore()
+        self.saved_searches = SavedSearchStore()
+
 
     def load_data(self, data: str) -> None:
         ...
@@ -40,8 +43,10 @@ class Datastore2:
     def load_file(self, path: str) -> None:
         ...
 
+
     def generate_xml(self) -> Element:
         ...
+
 
     def save_file(self, path: str) -> None:
         ...
