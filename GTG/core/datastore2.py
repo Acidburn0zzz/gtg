@@ -50,3 +50,7 @@ class Datastore2:
 
     def save_file(self, path: str) -> None:
         ...
+
+
+    def print_info(self) -> None:
+        ...
