@@ -183,9 +183,8 @@ class BaseStore(ABC):
 
         print(self)
 
-        for search in self.lookup.values():
-            print((f'- "{search.name}" with query "{search.query}" '
-                   f'and id "{search.sid}"'))
+        for node in self.lookup.values():
+            print(f'- {node}')
 
 
     def print_tree(self) -> None:
