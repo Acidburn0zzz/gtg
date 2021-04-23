@@ -18,11 +18,13 @@
 
 """The datastore ties together all the basic type stores and backends."""
 
+import logging
+
 from GTG.core.tasks2 import TaskStore
 from GTG.core.tags2 import TagStore
 from GTG.core.saved_searches import SavedSearchStore
 
-from lxml.etree import Element
+from lxml import etree as et
 
 
 log = logging.getLogger(__name__)
@@ -36,15 +38,23 @@ class Datastore2:
         self.saved_searches = SavedSearchStore()
 
 
-    def load_data(self, data: str) -> None:
-        ...
+    def load_data(self, data: et.Element) -> None:
+
+        self.saved_searches.from_xml(data.find('searchlist'))
+        self.tags.from_xml(data.find('taglist'))
+        self.tasks.from_xml(data.find('tasklist'), self.tags)
 
 
     def load_file(self, path: str) -> None:
-        ...
+
+        parser = et.XMLParser(remove_blank_text=True, strip_cdata=False)
+
+        with open(path, 'rb') as stream:
+            tree = et.parse(stream, parser=parser)
+            self.load_data(tree)
 
 
-    def generate_xml(self) -> Element:
+    def generate_xml(self) -> et.Element:
         ...
 
 
