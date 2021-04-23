@@ -72,7 +72,10 @@ class SavedSearchStore(BaseStore):
         for element in elements.copy():
             parent = element.get('parent')
 
-            if parent:
+            # Note: Previous versions of GTG stored saved searches as
+            # tags with a "search" parent, and this stuck for a while
+            # after the file format changed.
+            if parent and parent != 'search':
                 continue
 
             search_id = element.get('id')
