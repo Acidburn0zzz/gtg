@@ -280,7 +280,11 @@ class TaskStore(BaseStore):
             taglist = element.find('tags')
 
             if taglist is not None:
-                [tag_store.get(t.text) for t in taglist.iter('tag')]
+                for t in taglist.iter('tag'):
+                    try:
+                        tag_store.get(t.text)
+                    except KeyError:
+                        pass
 
             # Content
             content = element.find('content').text or ''
