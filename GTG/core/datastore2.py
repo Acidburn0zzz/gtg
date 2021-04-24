@@ -19,6 +19,7 @@
 """The datastore ties together all the basic type stores and backends."""
 
 import logging
+from time import time
 
 from GTG.core.tasks2 import TaskStore
 from GTG.core.tags2 import TagStore
@@ -36,6 +37,7 @@ class Datastore2:
         self.tasks = TaskStore()
         self.tags = TagStore()
         self.saved_searches = SavedSearchStore()
+        self.xml_tree = None
 
 
     def load_data(self, data: et.Element) -> None:
@@ -47,19 +49,48 @@ class Datastore2:
 
     def load_file(self, path: str) -> None:
 
+        if log.isEnabledFor(logging.DEBUG):
+            bench_start = time()
+
         parser = et.XMLParser(remove_blank_text=True, strip_cdata=False)
 
         with open(path, 'rb') as stream:
-            tree = et.parse(stream, parser=parser)
-            self.load_data(tree)
+            self.tree = et.parse(stream, parser=parser)
+            self.load_data(self.tree)
+
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug('Processed file %s in %.2fms',
+                      path, (time() - bench_start) * 1000)
 
 
-    def generate_xml(self) -> et.Element:
-        ...
+    def generate_xml(self) -> et.ElementTree:
+
+        root = et.Element('gtgData')
+        root.set('appVersion', '0.5')
+        root.set('xmlVersion', '2')
+
+        root.append(self.tags.to_xml())
+        root.append(self.saved_searches.to_xml())
+        root.append(self.tasks.to_xml())
+
+        return et.ElementTree(root)
 
 
     def save_file(self, path: str) -> None:
-        ...
+
+        if log.isEnabledFor(logging.DEBUG):
+            bench_start = time()
+
+        tree = self.generate_xml()
+
+        with open(path, 'wb') as stream:
+            tree.write(stream, xml_declaration=True,
+                    pretty_print=True,
+                    encoding='UTF-8')
+
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug('Processed file %s in %.2fms',
+                      path, (time() - bench_start) * 1000)
 
 
     def print_info(self) -> None:
