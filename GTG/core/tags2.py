@@ -24,7 +24,7 @@ import logging
 import random
 
 from lxml.etree import Element, SubElement
-from typing import List
+from typing import List, Any
 
 from GTG.core.base_store import BaseStore
 
@@ -57,6 +57,8 @@ class TagStore(BaseStore):
 
     def __init__(self) -> None:
         self.used_colors = set()
+        self.lookup_names = {}
+
         super().__init__()
 
 
@@ -66,10 +68,10 @@ class TagStore(BaseStore):
         return f'Tag Store. Holds {len(self.lookup)} tag(s)'
 
 
-    def get(self, name: str) -> Tag2:
+    def find(self, name: str) -> Tag2:
         """Get a tag by name."""
 
-        return self.lookup[name]
+        return self.lookup_names[name]
 
 
     def new(self, name: str, parent: uuid4 = None) -> Tag2:
@@ -118,14 +120,16 @@ class TagStore(BaseStore):
 
         # Now the remaining searches are children
         for element in elements:
-            parent = element.get('parent')
+            parent_name = element.get('parent')
             tid = element.get('id')
             name = element.get('name')
             color = element.get('color')
             icon = element.get('icon')
 
             tag = Tag2(id=tid, name=name, color=color, icon=icon)
-            self.add(tag, parent)
+            parent = self.find(parent_name)
+
+            self.add(tag, parent.id)
 
             log.debug('Added %s as child of %s', tag, parent)
 
@@ -153,7 +157,7 @@ class TagStore(BaseStore):
                 element.set('icon', tag.icon)
 
             try:
-                element.set('parent', str(parent_map[tag.id]))
+                element.set('parent', str(parent_map[tag.name]))
             except KeyError:
                 pass
 
@@ -175,3 +179,8 @@ class TagStore(BaseStore):
 
         self.used_colors.add(color)
         return color
+
+    def add(self, item: Any, parent_id: uuid4 = None) -> None:
+
+        super().add(item, parent_id)
+        self.lookup_names[item.name] = item
