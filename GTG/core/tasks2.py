@@ -265,24 +265,24 @@ class TaskStore(BaseStore):
             due_date = Date.parse(dates.findtext('due'))
 
             if fuzzy_due_date:
-                task.date_due = fuzzy_due_date
+                task.date_due = Date(fuzzy_due_date)
             elif due_date:
-                task.date_due = due_date
+                task.date_due = Date(due_date)
 
             fuzzy_start = dates.findtext('fuzzyStart')
             start = dates.findtext('start')
 
             if fuzzy_start:
-                task.date_start = fuzzy_start
+                task.date_start = Date(fuzzy_start)
             elif start:
-                task.date_start = start
+                task.date_start = Date(start)
 
             taglist = element.find('tags')
 
             if taglist is not None:
                 for t in taglist.iter('tag'):
                     try:
-                        tag_store.get(t.text)
+                        tag_store.find(t.text)
                     except KeyError:
                         pass
 
@@ -350,6 +350,8 @@ class TaskStore(BaseStore):
             start = SubElement(dates, start_tag)
             start.text = start_date.xml_str()
 
+            subtasks = SubElement(element, 'subtasks')
+
             for subtask in task.children:
                 sub = SubElement(subtasks, 'sub')
                 sub.text = subtask.id
@@ -373,8 +375,13 @@ class TaskStore(BaseStore):
         except KeyError:
             raise
 
+        # Only needed for root items
         try:
             self.data.remove(item)
+        except ValueError:
+            pass
+
+        try:
             self.lookup[parent_id].children.append(item)
             item.parent = self.lookup[parent_id]
 
