@@ -49,7 +49,7 @@ class BaseStore(ABC):
         ...
 
 
-    def get(key: str) -> Any:
+    def get(self, key: str) -> Any:
         """Get a saved search by id."""
 
         return self.lookup[key]
